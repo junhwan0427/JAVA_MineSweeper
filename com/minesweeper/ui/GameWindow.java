@@ -2,6 +2,8 @@ package com.minesweeper.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +19,7 @@ public class GameWindow extends JFrame {
     private boolean gameFinished;
     
     private Board board;
-    private JPanel boardPanel, statusPanel;
+    private JPanel boardPanel,boardContainer, statusPanel;
     private CellButton[][] buttons; // 버튼 빠른 접근을 위해 2차원 배열 보관
     
     private JRadioButtonMenuItem easyMenuItem, normalMenuItem, hardMenuItem;
@@ -29,6 +31,8 @@ public class GameWindow extends JFrame {
     
     
     private static final Object[] END_GAME_OPTIONS = {"새게임", "난이도 선택"}; // 게임 종료시 공통 선택지
+    private static final int MIN_CELL_SIZE = 32;
+    private static final int MAX_CELL_SIZE = 80;
     
     public GameWindow() {
         setTitle("Minesweeper");
@@ -41,8 +45,20 @@ public class GameWindow extends JFrame {
         setupTimer();        
         initBoard();
         renderBoard();
-
+        
+        setupWindowResizeHandler();// 셀 사이즈 조정
+        
         setVisible(true);
+        SwingUtilities.invokeLater(this::updateBoardSizing);
+    }
+    
+    private void setupWindowResizeHandler() {
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateBoardSizing();
+            }
+        });
     }
 
     // 메뉴바: 새 게임 + 난이도(라디오 버튼)
@@ -94,7 +110,7 @@ public class GameWindow extends JFrame {
 
     // 배치 후 화면 갱신
     private void renderBoard() {
-        if (boardPanel != null) remove(boardPanel);
+    	if (boardContainer != null) {remove(boardContainer);}
 
         int R = board.getRows(), C = board.getCols();
         buttons = new CellButton[R][C]; // 2차원 배열 준비
@@ -109,7 +125,19 @@ public class GameWindow extends JFrame {
                 boardPanel.add(b);
             }
         }
-        add(boardPanel, BorderLayout.CENTER);
+        
+        // 셀크기 조정
+        boardContainer = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        boardContainer.add(boardPanel, gbc);
+
+        add(boardContainer, BorderLayout.CENTER);
+        updateBoardSizing();
+        
         revalidate();
         repaint();
     }
@@ -131,6 +159,7 @@ public class GameWindow extends JFrame {
         initBoard();
         renderBoard();
         updateDifficultyMenuSelection();
+        SwingUtilities.invokeLater(this::updateBoardSizing);
     }
 
     // 메뉴의 선택 상태를 현재 난이도와 맞춥니다
@@ -250,6 +279,72 @@ public class GameWindow extends JFrame {
         }
     }
     
+    // 셀 사이즈 조절
+    private void updateBoardSizing() {
+        if (boardPanel == null || board == null) {return;}
+
+        int rows = board.getRows();
+        int cols = board.getCols();
+
+        Dimension contentSize = getContentPane().getSize();
+        int availableWidth = contentSize.width;
+        int availableHeight = contentSize.height;
+
+        if (statusPanel != null) {
+            availableHeight -= statusPanel.getHeight();
+        }
+
+        if (availableWidth <= 0 || availableHeight <= 0) {
+            Dimension pref = boardPanel.getPreferredSize();
+            availableWidth = Math.max(availableWidth, pref.width);
+            availableHeight = Math.max(availableHeight, pref.height);
+        }
+
+        int cellWidth = availableWidth / Math.max(1, cols);
+        int cellHeight = availableHeight / Math.max(1, rows);
+        int cellSize = Math.min(cellWidth, cellHeight);
+        if (cellSize <= 0) {cellSize = MIN_CELL_SIZE;}
+
+        cellSize = Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, cellSize));
+
+        Dimension preferred = new Dimension(cellSize * cols, cellSize * rows);
+        boardPanel.setPreferredSize(preferred);
+        boardPanel.setMinimumSize(new Dimension(MIN_CELL_SIZE * cols, MIN_CELL_SIZE * rows));
+        boardPanel.setMaximumSize(new Dimension(MAX_CELL_SIZE * cols, MAX_CELL_SIZE * rows));
+
+        if (boardContainer != null) {
+            boardContainer.revalidate();
+        }
+        boardPanel.revalidate();
+        boardPanel.repaint();
+
+        updateFrameMinimumSize();
+    }
+
+    private void updateFrameMinimumSize() {
+        if (board == null) {return;}
+
+        int rows = board.getRows();
+        int cols = board.getCols();
+
+        int minBoardWidth = MIN_CELL_SIZE * cols;
+        int minBoardHeight = MIN_CELL_SIZE * rows;
+
+        int statusWidth = 0;
+        int statusHeight = 0;
+        if (statusPanel != null) {
+            Dimension statusPref = statusPanel.getPreferredSize();
+            statusWidth = statusPref.width;
+            statusHeight = statusPref.height;
+        }
+
+        Insets insets = getInsets();
+        int minWidth = Math.max(minBoardWidth, statusWidth) + insets.left + insets.right;
+        int minHeight = minBoardHeight + statusHeight + insets.top + insets.bottom;
+
+        setMinimumSize(new Dimension(minWidth, minHeight));
+    }
+        
     // 게임 상단 바
     private void setupStatusPanel() {
         if (statusPanel != null) {remove(statusPanel);}
@@ -273,6 +368,7 @@ public class GameWindow extends JFrame {
         statusPanel.add(timerLabel, BorderLayout.EAST);
 
         add(statusPanel, BorderLayout.NORTH);
+        updateFrameMinimumSize();
     }
 
     private void setupTimer() {
