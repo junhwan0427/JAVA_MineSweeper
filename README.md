@@ -1,12 +1,14 @@
-# JAVA Minesweeper
+# JAVA 지뢰찾기
 
-Java Swing 기반으로 구현한 지뢰찾기 게임 프로젝트입니다. 난이도에 따라 보드 크기와 지뢰 개수가 달라지고, 첫 클릭은 항상 안전하도록 설계되었습니다. UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각형 비율을 유지합니다.
+Java 기반으로 구현한 지뢰찾기 게임 프로젝트입니다. 
+난이도에 따라 보드 크기와 지뢰 개수가 달라지고, 첫 클릭은 항상 지뢰를 피하도록 설계되었습니다. 
+UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각형 비율을 유지합니다.
 
 ## 실행 방법
 1. JDK 17 이상이 설치돼 있어야 합니다.
 2. `com/minesweeper/MinesweeperMain.java`를 실행하면 GUI가 열립니다.
 
-## 4-1) 주요 기능
+## 1. 주요 기능
 - **난이도 선택**: 초급/중급/고급 난이도를 메뉴에서 선택하거나 종료 후 다시 선택할 수 있습니다.
 - **첫 클릭 보호**: 첫 좌클릭 시 주변 3×3 안전 구역에 지뢰가 배치되지 않도록 보장이 들어갑니다.
 - **자동 연쇄 오픈**: 빈 칸을 열면 BFS 방식으로 인접한 빈 칸을 자동으로 확장해서 엽니다.
@@ -14,7 +16,7 @@ Java Swing 기반으로 구현한 지뢰찾기 게임 프로젝트입니다. 난
 - **타이머 및 상태 표시줄**: 현재 난이도와 경과 시간을 상단 패널에 표기합니다.
 - **반응형 보드**: 창 크기에 따라 각 칸의 크기를 32~80px 범위로 자동 조정하고, 프레임 최소/최대 크기도 함께 갱신합니다.
 
-## 4-2) 구현 내용
+## 2. 구현 내용
 - `GameWindow`가 UI 전체를 관리하며 메뉴, 상태 패널, 보드 패널을 구성합니다.
   - `updateBoardSizing()`에서 현재 창 크기를 기준으로 셀 크기를 계산하고, 최소/최대 크기를 제한합니다.
   - `setupWindowResizeHandler()`로 리사이즈 이벤트에 반응해 항상 정사각형을 유지합니다.
@@ -25,107 +27,24 @@ Java Swing 기반으로 구현한 지뢰찾기 게임 프로젝트입니다. 난
 - `Difficulty`, `FlagState`, `GameState`는 게임 전반에 사용되는 열거형으로, UI 텍스트와 상태 판별에 활용됩니다.
 - `GameManager`는 보드와 게임 상태를 묶어 추후 컨트롤러/서비스 레이어에서 재사용할 수 있도록 캡슐화했습니다.
 
-## 4-3) try-catch 예외처리 정리
+## 3. try-catch 예외처리 정리
 - `CellButton.handleLeftClick()`에서 `Board.openCell()` 호출을 `try-catch`로 감싸 `GameExceptions.BoomException`을 처리합니다.
   - 지뢰를 클릭해 예외가 발생하면 `GameWindow.onGameOver()`로 위임해 게임 종료 다이얼로그를 표시합니다.
 - 지뢰 배치 시 보드 크기 대비 지뢰가 너무 많을 경우 `Board.placeMines()`에서 `IllegalStateException`을 던져 잘못된 난이도 구성을 방지합니다.
 
-## 4-4) 에러 및 뜻대로 코딩이 안될 때 해결한 부분
+## 4. 에러 및 뜻대로 코딩이 안될 때 해결한 부분
 - **첫 클릭에서 지뢰가 나타나는 문제**: 지뢰를 초기화 시점에 배치하지 않고, 첫 클릭 좌표를 입력받은 뒤 안전 구역을 피해서 배치하도록 로직을 수정했습니다.
 - **창 크기 변경 시 칸이 일그러지는 문제**: 보드 패널을 중앙 배치 컨테이너로 감싸고, 리사이즈 이벤트마다 셀 크기를 계산해 정사각형을 유지하도록 고정 범위(최소 32px, 최대 80px)를 적용했습니다.
 - **연쇄 오픈 성능 문제**: 재귀 대신 큐 기반 BFS로 변경해 스택 오버플로우 위험을 줄이고 대량 연쇄 오픈을 안정적으로 처리합니다.
 
-## 4-5) 상속과 인터페이스 설계
+## 5. 상속과 인터페이스 설계
 - `Click` 인터페이스는 셀이 좌클릭/우클릭 동작을 구현하도록 강제합니다.
 - `Cell` 추상 클래스는 좌표, 깃발 상태, 열림 여부와 같은 공통 상태와 `nextFlagState()` 로직을 제공합니다.
   - `EmptyCell`과 `MineCell`이 이를 상속해 각 타입별 상태 값을 설정하고, 클릭 동작을 구체화합니다.
 - `GameExceptions` 유틸리티 클래스는 커스텀 런타임 예외를 중첩 클래스로 묶어 UI와 로직 사이의 계약을 명확하게 했습니다.
 
-## 4-6) 사용 프레임워크 및 선택 이유
+## 6. 사용 프레임워크 및 선택 이유
 - **Java Swing**을 사용했습니다.
   - 표준 JDK만으로 GUI를 구성할 수 있어 별도 의존성 관리가 필요 없고, 학습 곡선이 낮으며 실시간 이벤트 처리에 적합합니다.
   - `JFrame`, `JPanel`, `JButton`, `JMenuBar` 등 기본 컴포넌트를 활용해 빠르게 UI를 구성했습니다.
 
-## 클래스 다이어그램
-아래 다이어그램은 주요 클래스 간 관계를 보여줍니다.
-
-```mermaid
-classDiagram
-    class MinesweeperMain {
-        +main(String[] args)
-    }
-    class GameWindow {
-        -Difficulty currentDifficulty
-        -Board board
-        +GameWindow()
-        +refreshCells(List<Point>)
-        +onGameOver(String)
-        +checkForWin()
-    }
-    class Board {
-        -Cell[][] cells
-        -boolean isMinePlaced
-        +Board(Difficulty)
-        +initBoard()
-        +openCell(int,int) List<Point>
-        +playerWinCheck() boolean
-    }
-    class CellButton {
-        -int row
-        -int col
-        -Board board
-        -GameWindow window
-        +handleLeftClick()
-        +handleRightClick()
-        +refreshFromModel()
-    }
-    class Cell {
-        <<abstract>>
-        -boolean cellOpened
-        -FlagState flagState
-        +onLeftClick()
-        +onRightClick()
-        +nextFlagState()
-    }
-    class EmptyCell {
-        -int nearMineCount
-        +getNearMineCount()
-    }
-    class MineCell
-    class Difficulty
-    class GameState
-    class FlagState
-    class GameExceptions {
-        class BoomException
-        class InvalidActionException
-    }
-    interface Click {
-        +onLeftClick()
-        +onRightClick()
-    }
-
-    MinesweeperMain --> GameWindow
-    GameWindow --> Board
-    GameWindow --> CellButton
-    GameWindow --> Difficulty
-    class GameManager {
-        -Board board
-        -GameState state
-        +startGame()
-        +getBoard()
-    }
-
-    GameWindow --> GameExceptions
-    Board --> Difficulty
-    Board --> Cell
-    Board --> GameExceptions
-    GameManager --> Board
-    GameManager --> GameState
-    CellButton --> Board
-    CellButton --> Cell
-    CellButton --> GameWindow
-    CellButton --> FlagState
-    Cell <|-- EmptyCell
-    Cell <|-- MineCell
-    Cell ..|> Click
-    Cell --> FlagState
