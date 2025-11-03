@@ -346,11 +346,8 @@ public class GameWindow extends JFrame {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    /**
-     * 셀이 실제로 열릴 준비가 된 순간(첫 좌클릭 등)에 타이머를 시작하기 위해
-     * {@link CellButton}에서 호출하는 훅입니다. 첫 클릭 이전에는 지뢰를 배치하지
-     * 않으므로 UI 쪽에서 이 신호를 받아 타이머를 안전하게 켜 줍니다.
-     */
+
+    // CellButton에서 첫 좌클릭 감지로 타이버 시작
     void onCellOpenInitiated() {
         startTimerIfNeeded();
     }

@@ -58,6 +58,7 @@ public class CellButton extends JButton {
         try {
         	List<Point> opened = board.openCell(row, col);
             moveCompleted = true;
+            window.onCellOpenInitiated(); // 첫 클릭 시 타이머 실행
             window.refreshCells(opened); // 연쇄 여부 무관 — 열린 칸만 부분 갱신
         } catch (GameExceptions.BoomException ex) {
             window.onGameOver(ex.getMessage()); // 지뢰 클릭시 게임오버(윈도우에서 실행)
