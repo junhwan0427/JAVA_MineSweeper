@@ -43,3 +43,27 @@ UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각�
 - `ArrayList<Point>` 기반의 `List`로 클릭 결과나 갱신 대상 셀 목록을 가변 길이로 관리해 UI와 로직 간 데이터 전달을 단순화했습니다.
 - 연쇄 오픈 로직은 `Queue<Point>`(구현체: `LinkedList`)를 사용해 BFS를 안정적으로 처리하고, 재귀 호출 없이도 대규모 탐색을 수행할 수 있도록 했습니다.
 - `List`와 `Queue`의 표준 인터페이스를 사용해 이후 다른 컬렉션 구현체로 교체해야 할 때도 최소 변경으로 대응할 수 있는 유연성을 확보했습니다.
+
+## 스켈레톤 구조 및 기능 요약
+```text
+JAVA_MineSweeper/
+├── README.md
+└── com/
+    └── minesweeper/ -> 애플리케이션 진입점(`MinesweeperMain`)과 공용 패키지에 대한 루트를 제공합니다.
+        ├── MinesweeperMain.java
+        ├── common/ -> 전역적으로 공유되는 정의를 모아둔 패키지입니다.
+        │   ├── Click.java
+        │   ├── Difficulty.java
+        │   ├── FlagState.java
+        │   ├── GameExceptions.java 
+        │   └── GameState.java 
+        ├── game/ -> `Board`, `GameManager` 등 보드 생성·지뢰 배치·승리 판정과 같은 핵심 게임 로직을 담당합니다.
+        │   ├── Board.java
+        │   ├── GameManager.java
+        │   └── cells/ -> `Cell`, `EmptyCell`, `MineCell`로 셀 모델을 세분화해 타입별 상태와 동작을 제공합니다.
+        │       ├── Cell.java
+        │       ├── EmptyCell.java
+        │       └── MineCell.java
+        └── ui/ 사용자 UI를 담당합니다.(Swing 기반)
+            ├── CellButton.java
+            └── GameWindow.java
