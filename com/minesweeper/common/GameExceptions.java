@@ -14,13 +14,4 @@ public final class GameExceptions {
     public static class InvalidActionException extends RuntimeException {
         public InvalidActionException(String msg) { super(msg); }
     }
-
-    // 필요 시 추가 예외 예시
-    public static class AlreadyOpenedException extends RuntimeException {
-        public AlreadyOpenedException(String msg) { super(msg); }
-    }
-
-    public static class GameLockedException extends RuntimeException {
-        public GameLockedException(String msg) { super(msg); }
-    }
 }

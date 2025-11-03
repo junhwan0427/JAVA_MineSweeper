@@ -16,8 +16,8 @@ import com.minesweeper.game.cells.MineCell;
 
 
 public class Board {
-	private static final int[] NEIGHBOR_ROW = {-1, -1, -1, 0, 0, 1, 1, 1};// 주변 8칸 조회 용도
-    private static final int[] NEIGHBOR_COL = {-1, 0, 1, -1, 1, -1, 0, 1};
+	private static final int[] NEAR_ROW = {-1, -1, -1, 0, 0, 1, 1, 1};// 주변 8칸 조회 용도
+    private static final int[] NEAR_COL = {-1, 0, 1, -1, 1, -1, 0, 1};
 	private int rows, cols, mineCount;
     private Cell[][] cells; // 2차원 셀 배열
     private Random random = new Random();
@@ -85,9 +85,9 @@ public class Board {
                 if (cells[r][c] instanceof EmptyCell emptyCell) {
                 	emptyCell.setNearMineCount(0);
                     int count = 0;
-                    for (int i = 0; i < NEIGHBOR_ROW.length; i++) {
-                        int nr = r + NEIGHBOR_ROW[i];
-                        int nc = c + NEIGHBOR_COL[i];
+                    for (int i = 0; i < NEAR_ROW.length; i++) {
+                        int nr = r + NEAR_ROW[i];
+                        int nc = c + NEAR_COL[i];
                         if (isInBoard(nr, nc) && cells[nr][nc].isMine()) {
                             count++;
                         }
@@ -136,8 +136,8 @@ public class Board {
 
         while (!queue.isEmpty()) {
         	Point cur = queue.poll();        	            
-        	for (int i = 0; i < NEIGHBOR_ROW.length; i++) {
-                int nr = cur.x + NEIGHBOR_ROW[i], nc = cur.y + NEIGHBOR_COL[i];
+        	for (int i = 0; i < NEAR_ROW.length; i++) {
+                int nr = cur.x + NEAR_ROW[i], nc = cur.y + NEAR_COL[i];
                 if (!isInBoard(nr, nc)) continue;
 
                 Cell neighbor = cells[nr][nc];

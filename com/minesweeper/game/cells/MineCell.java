@@ -1,7 +1,6 @@
 package com.minesweeper.game.cells;
 
 import com.minesweeper.common.FlagState;
-//import com.minesweeper.exception.BoomException;
 
 public class MineCell extends Cell {
 
@@ -13,7 +12,6 @@ public class MineCell extends Cell {
     @Override
     public void onLeftClick() {
         if (!cellOpened && flagState == FlagState.NONE) {
-//            throw new BoomException("💣 지뢰 클릭됨! 게임 오버");
         }
     }
 
