@@ -2,6 +2,9 @@ package com.minesweeper.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.minesweeper.common.Difficulty;
 import com.minesweeper.game.Board;
 import com.minesweeper.game.cells.Cell;
@@ -125,6 +128,7 @@ public class GameWindow extends JFrame {
     }
 
     public void onGameOver(String message) {
+    	openAllMines();
         disableBoardInteraction();
         Object[] options = {"새게임", "난이도 선택"};
         String messageLine = (message == null || message.isBlank()) ? "지뢰를 클릭 했습니다!" : message;
@@ -160,6 +164,28 @@ public class GameWindow extends JFrame {
             }
         }
     }
+    
+    private void openAllMines() {
+        if (board == null || buttons == null) {
+            return;
+        }
+
+        Cell[][] cells = board.getCells();
+        List<Point> minesToOpen = new ArrayList<>();
+
+        for (int r = 0; r < cells.length; r++) {
+            for (int c = 0; c < cells[r].length; c++) {
+                Cell cell = cells[r][c];
+                if (cell.isMine()) {
+                    cell.setOpened(true);
+                    minesToOpen.add(new Point(r, c));
+                }
+            }
+        }
+
+        refreshButtons(minesToOpen);
+    }
+    
 
     private void showDifficultySelectionDialog() {
         Object[] options = {
