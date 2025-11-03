@@ -13,6 +13,8 @@ public class GameWindow extends JFrame {
 	
     private Difficulty currentDifficulty = Difficulty.EASY; // 초기화면 수정해야 함
     
+    private boolean gameFinished;
+    
     private Board board;
     private JPanel boardPanel;
 
@@ -77,6 +79,7 @@ public class GameWindow extends JFrame {
     private void initBoard() {
         board = new Board(currentDifficulty);
         board.initBoard();
+        gameFinished = false;
     }
 
     
@@ -128,6 +131,9 @@ public class GameWindow extends JFrame {
     }
 
     public void onGameOver(String message) {
+    	if (gameFinished) {
+            return;
+        }gameFinished = true;
     	openAllMines();
         disableBoardInteraction();
         Object[] options = {"새게임", "난이도 선택"};
@@ -136,21 +142,16 @@ public class GameWindow extends JFrame {
             messageLine = "지뢰를 클릭 했습니다!";
         }
         String displayMessage = messageLine + "\n       Game Over";
-        int choice = JOptionPane.showOptionDialog(
-                this,
-                displayMessage,
-                "Game Over",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
-
-        if (choice == 0) {
-            restartCurrentGame();
-        } else if (choice == 1) {
-            showDifficultySelectionDialog();
+        int choice = showPostGameOptions(displayMessage, "Game Over");
+        handlePostGameChoice(choice);
+    }
+    
+    public void checkForVictory() {
+        if (gameFinished || board == null) {
+            return;
+        }
+        if (board.hasPlayerWon()) {
+            onGameWin();
         }
     }
 
@@ -162,6 +163,39 @@ public class GameWindow extends JFrame {
             for (CellButton button : row) {
                 button.setEnabled(false);
             }
+        }
+    }
+    
+    private void onGameWin() {
+        if (gameFinished) {
+            return;
+        }
+        gameFinished = true;
+        disableBoardInteraction();
+        String displayMessage = "축하합니다! 승리했습니다!\n       Victory";
+        int choice = showPostGameOptions(displayMessage, "Victory");
+        handlePostGameChoice(choice);
+    }
+
+    private int showPostGameOptions(String displayMessage, String title) {
+        Object[] options = {"새게임", "난이도 선택"};
+        return JOptionPane.showOptionDialog(
+                this,
+                displayMessage,
+                title,
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+    }
+    
+    private void handlePostGameChoice(int choice) {
+        if (choice == 0) {
+            restartCurrentGame();
+        } else if (choice == 1) {
+            showDifficultySelectionDialog();
         }
     }
     

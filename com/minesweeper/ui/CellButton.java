@@ -48,19 +48,25 @@ public class CellButton extends JButton {
 
     // 🔹 좌클릭: 셀 열기
     private void handleLeftClick() {
+    	boolean moveCompleted = false;
         try {
         	List<Point> opened = board.openCell(cell.getRow(), cell.getCol());
+            moveCompleted = true;
             window.refreshButtons(opened); // 연쇄 여부 무관 — 열린 칸만 부분 갱신
         } catch (GameExceptions.BoomException ex) {
             window.onGameOver(ex.getMessage()); // 지뢰 클릭시 게임오버(윈도우에서 실행)
         }
         updateAppearance();
+        if (moveCompleted) {
+            window.checkForVictory();
+        }
     }
 
     // 🔹 우클릭: 깃발/물음표 상태 변경
     private void handleRightClick() {
         cell.onRightClick();
         refreshFromModel();
+        window.checkForVictory();
     }
 
     // 🔹 셀 상태에 따라 버튼 외형 갱신

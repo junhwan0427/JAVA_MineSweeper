@@ -149,7 +149,31 @@ public class Board {
     public int getRows() { return rows; }
     public int getCols() { return cols; }
     
-    
+    public boolean hasPlayerWon() {
+        boolean allNonMineOpened = true;
+        boolean allMinesFlagged = true;
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                Cell cell = cells[r][c];
+
+                if (cell.isMine()) {
+                    if (cell.getFlagState() != FlagState.FLAGGED) {
+                        allMinesFlagged = false;
+                    }
+                } else {
+                    if (cell.getFlagState() == FlagState.FLAGGED) {
+                        return false; // 지뢰가 아닌 칸에 깃발이 있으면 승리 아님
+                    }
+                    if (!cell.isOpened()) {
+                        allNonMineOpened = false;
+                    }
+                }
+            }
+        }
+
+        return allNonMineOpened || allMinesFlagged;
+    }
     
     
     
