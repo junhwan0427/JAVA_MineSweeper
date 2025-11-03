@@ -21,7 +21,8 @@ public class Board {
 	private int rows, cols, mineCount;
     private Cell[][] cells; // 2차원 셀 배열
     private Random random = new Random();
-
+    private boolean isMinePlaced;
+    
     public Board(Difficulty diff) {
         this.rows = diff.getRows();
         this.cols = diff.getCols();
@@ -31,23 +32,40 @@ public class Board {
 
     // 전체 보드 초기화
     public void initBoard() {
-        placeMines();      // 1. 지뢰 배치
-        fillEmptyCells();  // 2. 나머지 빈 칸 채우기
-        calculateNearMines(); // 3. 인접 지뢰 수 계산
+    	cells = new Cell[rows][cols];
+    	fillEmptyCells();
+    	isMinePlaced = false; // 지뢰 없음 
+        
+    	// 첫 클릭은 지뢰를 안나오게 하기위한 initBoard 수정
+//        placeMines();      // 1. 지뢰 배치
+//        fillEmptyCells();  // 2. 나머지 빈 칸 채우기
+//        calculateNearMines(); // 3. 인접 지뢰 수 계산
     }
 
     // ✅ 1. 지뢰 배치
-    private void placeMines() {
+    private void placeMines(int firstRow, int firstCol) { // 첫 셀 클릭
         int placed = 0;
+        int safeZoneSize = countSafeZoneCells(firstRow, firstCol); // safeZone보다 지뢰가 많을 경우 (사용자설정 난이도 추가 대비)
+        if (rows * cols - safeZoneSize < mineCount) {
+            throw new IllegalStateException("지뢰 개수가 보드 크기 대비 너무 많습니다.");
+        }
+        
         while (placed < mineCount) {
             int r = random.nextInt(rows);
             int c = random.nextInt(cols);
-            if (cells[r][c] == null) { // 중복 방지
-                cells[r][c] = new MineCell(r, c);
-                placed++;
+            
+            if (isInSafeZone(r, c, firstRow, firstCol)) {continue;}
+            Cell current = cells[r][c];
+            
+            if (current.isMine()) {continue;}
+            MineCell mine = new MineCell(r, c);
+            
+            mine.setFlagState(current.getFlagState());
+            mine.setOpened(current.isOpened());
+            cells[r][c] = mine;
+            placed++;
             }
         }
-    }
 
     // ✅ 2. 빈 칸 채우기
     private void fillEmptyCells() {
@@ -65,6 +83,7 @@ public class Board {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (cells[r][c] instanceof EmptyCell emptyCell) {
+                	emptyCell.setNearMineCount(0);
                     int count = 0;
                     for (int i = 0; i < NEIGHBOR_ROW.length; i++) {
                         int nr = r + NEIGHBOR_ROW[i];
@@ -84,10 +103,14 @@ public class Board {
     public List<Point> openCell(int r, int c) {
     	    	
     	List<Point> opened = new ArrayList<>();
-    	Cell cell = cells[r][c];
-    	
-    	if (!isInBoard(r, c)) return opened; // // 보드 밖 좌표 
+
+        if (!isInBoard(r, c)) return opened; // // 보드 밖 좌표
+        Cell cell = cells[r][c];
         if (cell.isOpened() || cell.getFlagState() != FlagState.NONE) return opened; // // 이미 열렸거나 깃발/물음표
+        
+        // 첫 클릭 반영한 지뢰 설정
+        safeMinesPlaced(r, c);
+        cell = cells[r][c];
         
         // 지뢰 클릭 시
         if (cell.isMine()) {
@@ -137,6 +160,35 @@ public class Board {
     private boolean isInBoard(int r, int c) {
         return r >= 0 && r < rows && c >= 0 && c < cols;
     }
+    
+    //첫 클릭 위치를 기준으로 3x3 안전 구역(첫 칸과 인접 8칸)을 설정
+    private boolean isInSafeZone(int r, int c, int firstRow, int firstCol) {
+        return Math.abs(r - firstRow) <= 1 && Math.abs(c - firstCol) <= 1;
+    }
+
+    private int countSafeZoneCells(int firstRow, int firstCol) {
+        int count = 0;
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                int nr = firstRow + dr;
+                int nc = firstCol + dc;
+                if (isInBoard(nr, nc)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private void safeMinesPlaced(int firstRow, int firstCol) {
+        if (isMinePlaced) {
+            return;
+        }
+        placeMines(firstRow, firstCol);
+        calculateNearMines();
+        isMinePlaced = true;
+    }
+    
 
     // 보드 가져오기 (UI나 Controller에서 접근용)
     public Cell[][] getCells() {return cells;}
@@ -145,6 +197,8 @@ public class Board {
     public int getCols() { return cols; }
     
     public boolean playerWinCheck() {
+    	if (!isMinePlaced) {return false;}
+    	
         boolean allNonMineOpened = true;
         boolean allMinesFlagged = true;
 
@@ -170,7 +224,9 @@ public class Board {
         return allNonMineOpened || allMinesFlagged;
     }
     
-    
+    public boolean getIsMinePlaced() {
+        return isMinePlaced;
+    }
     
     
     

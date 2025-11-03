@@ -149,6 +149,7 @@ public class GameWindow extends JFrame {
     
     public void checkForWin() {
         if (gameFinished || board == null) {return;}
+        if (!board.getIsMinePlaced()) {return;}
         if (board.playerWinCheck()) {onGameWin();}
     }
 

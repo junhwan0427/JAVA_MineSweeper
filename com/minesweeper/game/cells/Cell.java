@@ -24,7 +24,11 @@ public abstract class Cell implements Click {
     public void setOpened(boolean opened) {this.cellOpened = opened;}
     
     public FlagState getFlagState() { return flagState; }
-
+    
+    public void setFlagState(FlagState flagState) {
+        this.flagState = flagState;
+    }
+    
     // 우클릭 시 상태 순환: NONE → FLAGGED → QUESTION → NONE
     public void nextFlagState() {
         switch (flagState) {
