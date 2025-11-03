@@ -1,11 +1,15 @@
 package com.minesweeper.game;
 
+import java.awt.Point;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
 import com.minesweeper.common.Difficulty;
 import com.minesweeper.common.FlagState;
+import com.minesweeper.common.GameExceptions;
 import com.minesweeper.game.cells.Cell;
 import com.minesweeper.game.cells.EmptyCell;
 import com.minesweeper.game.cells.MineCell;
@@ -79,46 +83,54 @@ public class Board {
 
     
  // ✅ 셀 열기 (좌클릭 처리)
-    public void openCell(int r, int c) {
-        if (!isInBoard(r, c)) return;
-        Cell cell = cells[r][c];
-
-        if (cell.isOpened() || cell.getFlagState() != FlagState.NONE) return;
-
+    public List<Point> openCell(int r, int c) {
+    	    	
+    	List<Point> opened = new ArrayList<>();
+    	Cell cell = cells[r][c];
+    	
+    	if (!isInBoard(r, c)) return opened; // // 보드 밖 좌표 
+        if (cell.isOpened() || cell.getFlagState() != FlagState.NONE) return opened; // // 이미 열렸거나 깃발/물음표
+        
+        // 지뢰 클릭 시
+        if (cell.isMine()) {
+            cell.setOpened(true);
+            throw new GameExceptions.BoomException("지뢰를 클릭했습니다!");
+        }
+        
+        // 정상 오픈 시
         cell.setOpened(true);
-
+        opened.add(new Point(r, c)); // am11 추가
+        
         // 주변 지뢰가 0이면 연쇄 오픈 시작
         if (cell instanceof EmptyCell empty && empty.getNearMineCount() == 0) {
-            openAdjacentCells(r, c);
+        	bfsOpen(r, c,opened);
         }
+        return opened;
     }
 
     // ✅ 연쇄 오픈 (BFS_너비우선탐색 방식)
-    private void openAdjacentCells(int r, int c) {
+    private void bfsOpen(int r, int c, List<Point> opened) {
         int[] dr = {-1, -1, -1, 0, 0, 1, 1, 1};
         int[] dc = {-1, 0, 1, -1, 1, -1, 0, 1};
 
-        Queue<int[]> queue = new LinkedList<>();
-        queue.add(new int[]{r, c});
+        Queue<Point> queue = new LinkedList<>();
+        queue.add(new Point(r, c));
 
         while (!queue.isEmpty()) {
-            int[] pos = queue.poll();
-            int cr = pos[0], cc = pos[1];
-
+        	Point cur = queue.poll();        	            
             for (int i = 0; i < 8; i++) {
-                int nr = cr + dr[i];
-                int nc = cc + dc[i];
-
+                int nr = cur.x + dr[i], nc = cur.y + dc[i];
                 if (!isInBoard(nr, nc)) continue;
 
                 Cell neighbor = cells[nr][nc];
-                if (neighbor.isOpened() || neighbor.isMine()) continue;
+                if (neighbor.isOpened() || neighbor.isMine() || neighbor.getFlagState() != FlagState.NONE) continue;
 
                 neighbor.setOpened(true);
-
+                opened.add(new Point(nr, nc));
+                
                 // 주변 지뢰가 0이면 계속 확장
                 if (neighbor instanceof EmptyCell e && e.getNearMineCount() == 0) {
-                    queue.add(new int[]{nr, nc});
+                    queue.add(new Point(nr, nc));
                 }
             }
         }

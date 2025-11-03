@@ -13,6 +13,8 @@ public class GameWindow extends JFrame {
     private Board board;
     private JPanel boardPanel;
 
+    private CellButton[][] buttons; // 버튼 빠른 접근을 위해 2차원 배열 보관
+    
     public GameWindow() {
         setTitle("Minesweeper");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -71,15 +73,21 @@ public class GameWindow extends JFrame {
         board.initBoard();
     }
 
-    private void renderBoard() {
+    
+    private void renderBoard() {    	
         if (boardPanel != null) remove(boardPanel);
 
-        boardPanel = new JPanel(new GridLayout(board.getRows(), board.getCols()));
+        int R = board.getRows(), C = board.getCols();
+        buttons = new CellButton[R][C]; // 2차원 배열 준비
+        
+        boardPanel = new JPanel(new GridLayout(R, C));
         Cell[][] cells = board.getCells();
 
-        for (int r = 0; r < board.getRows(); r++) {
-            for (int c = 0; c < board.getCols(); c++) {
-                boardPanel.add(new CellButton(cells[r][c], board));// 1103_am11 보드 추가
+        for (int r = 0; r < R; r++) {
+            for (int c = 0; c < C; c++) {
+            	CellButton b = new CellButton(cells[r][c], board, this); // GameWindow 참조 전달
+                buttons[r][c] = b; // ← 보관
+                boardPanel.add(b);
             }
         }
         add(boardPanel, BorderLayout.CENTER);
@@ -87,6 +95,12 @@ public class GameWindow extends JFrame {
         repaint();
     }
 
+ // 부분 갱신 전용
+    public void refreshButtons(java.util.List<Point> opened) {
+        for (Point p : opened) {
+            buttons[p.x][p.y].refreshFromModel();
+        }
+    }	
     private void newGame() {
         initBoard();
         renderBoard();

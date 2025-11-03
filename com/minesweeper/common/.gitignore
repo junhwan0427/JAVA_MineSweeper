@@ -2,3 +2,10 @@
 /Difficulty.class
 /FlagState.class
 /GameState.class
+/Exception.class
+/GameException.class
+/GameExceptions$AlreadyOpenedException.class
+/GameExceptions$BoomException.class
+/GameExceptions$GameLockedException.class
+/GameExceptions$InvalidActionException.class
+/GameExceptions.class
