@@ -47,4 +47,113 @@ UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각�
 - **Java Swing**을 사용했습니다.
   - 표준 JDK만으로 GUI를 구성할 수 있어 별도 의존성 관리가 필요 없고, 학습 곡선이 낮으며 실시간 이벤트 처리에 적합합니다.
   - `JFrame`, `JPanel`, `JButton`, `JMenuBar` 등 기본 컴포넌트를 활용해 빠르게 UI를 구성했습니다.
+아래 다이어그램은 주요 클래스 간 관계를 대략적으로 보여줍니다.
 
+```mermaid
+classDiagram
+    direction LR
+
+    class MinesweeperMain {
+        +main(String[] args)
+    }
+
+    class GameWindow {
+        -Difficulty currentDifficulty
+        -Board board
+        -CellButton[][] buttons
+        +GameWindow()
+        +refreshCells(List<Point>)
+        +onCellOpenInitiated()
+        +onGameOver(String)
+        +checkForWin()
+    }
+
+    class CellButton {
+        -int row
+        -int col
+        -Board board
+        -GameWindow window
+        +handleLeftClick()
+        +handleRightClick()
+        +refreshFromModel()
+        +getCell() Cell
+    }
+
+    class Board {
+        -Cell[][] cells
+        -boolean isMinePlaced
+        +Board(Difficulty)
+        +initBoard()
+        +openCell(int,int) List<Point>
+        +playerWinCheck() boolean
+        +getCells() Cell[][]
+        +getRows() int
+        +getCols() int
+    }
+
+    class GameManager {
+        -Board board
+        -GameState state
+        -Difficulty difficulty
+        +GameManager(Difficulty)
+        +startGame()
+        +getState() GameState
+        +getBoard() Board
+    }
+
+    class Cell {
+        <<abstract>>
+        -boolean cellOpened
+        -FlagState flagState
+        +onLeftClick()
+        +onRightClick()
+        +nextFlagState()
+    }
+
+    class EmptyCell {
+        -int nearMineCount
+        +getNearMineCount() int
+        +setNearMineCount(int)
+    }
+
+    class MineCell
+
+    class Difficulty {
+        +getRows() int
+        +getCols() int
+        +getMines() int
+        +label() String
+    }
+
+    class FlagState
+    class GameState
+
+    class GameExceptions {
+        class BoomException
+        class InvalidActionException
+    }
+
+    interface Click {
+        +onLeftClick()
+        +onRightClick()
+    }
+
+    class JFrame
+    class JButton
+
+    MinesweeperMain --> GameWindow
+    GameWindow --|> JFrame
+    GameWindow --> Board
+    GameWindow --> "*" CellButton
+    GameWindow --> Difficulty
+    GameWindow --> GameExceptions
+
+    CellButton --|> JButton
+    CellButton --> Board
+    CellButton --> GameWindow
+    CellButton --> FlagState
+    CellButton --> Cell
+
+    Board o--> Cell
+    Board --> Difficulty
+    Board --> GameExceptions
