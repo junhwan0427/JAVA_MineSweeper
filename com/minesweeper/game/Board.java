@@ -16,6 +16,8 @@ import com.minesweeper.game.cells.MineCell;
 
 
 public class Board {
+	private static final int[] NEIGHBOR_ROW = {-1, -1, -1, 0, 0, 1, 1, 1};// 주변 8칸 조회 용도
+    private static final int[] NEIGHBOR_COL = {-1, 0, 1, -1, 1, -1, 0, 1};
 	private int rows, cols, mineCount;
     private Cell[][] cells; // 2차원 셀 배열
     private Random random = new Random();
@@ -60,17 +62,13 @@ public class Board {
 
     // ✅ 3. 인접 지뢰 수 계산
     private void calculateNearMines() {
-    	// 주변 8칸 탐색 용도
-        int[] dr = {-1, -1, -1, 0, 0, 1, 1, 1};
-        int[] dc = {-1, 0, 1, -1, 1, -1, 0, 1};
-
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (cells[r][c] instanceof EmptyCell emptyCell) {
                     int count = 0;
-                    for (int i = 0; i < 8; i++) {
-                        int nr = r + dr[i];
-                        int nc = c + dc[i];
+                    for (int i = 0; i < NEIGHBOR_ROW.length; i++) {
+                        int nr = r + NEIGHBOR_ROW[i];
+                        int nc = c + NEIGHBOR_COL[i];
                         if (isInBoard(nr, nc) && cells[nr][nc].isMine()) {
                             count++;
                         }
@@ -103,23 +101,20 @@ public class Board {
         
         // 주변 지뢰가 0이면 연쇄 오픈 시작
         if (cell instanceof EmptyCell empty && empty.getNearMineCount() == 0) {
-        	bfsOpen(r, c,opened);
+        	neighborCellOpen(r, c,opened);
         }
         return opened;
     }
 
     // ✅ 연쇄 오픈 (BFS_너비우선탐색 방식)
-    private void bfsOpen(int r, int c, List<Point> opened) {
-        int[] dr = {-1, -1, -1, 0, 0, 1, 1, 1};
-        int[] dc = {-1, 0, 1, -1, 1, -1, 0, 1};
-
+    private void neighborCellOpen(int r, int c, List<Point> opened) {
         Queue<Point> queue = new LinkedList<>();
         queue.add(new Point(r, c));
 
         while (!queue.isEmpty()) {
         	Point cur = queue.poll();        	            
-            for (int i = 0; i < 8; i++) {
-                int nr = cur.x + dr[i], nc = cur.y + dc[i];
+        	for (int i = 0; i < NEIGHBOR_ROW.length; i++) {
+                int nr = cur.x + NEIGHBOR_ROW[i], nc = cur.y + NEIGHBOR_COL[i];
                 if (!isInBoard(nr, nc)) continue;
 
                 Cell neighbor = cells[nr][nc];
@@ -149,7 +144,7 @@ public class Board {
     public int getRows() { return rows; }
     public int getCols() { return cols; }
     
-    public boolean hasPlayerWon() {
+    public boolean playerWinCheck() {
         boolean allNonMineOpened = true;
         boolean allMinesFlagged = true;
 

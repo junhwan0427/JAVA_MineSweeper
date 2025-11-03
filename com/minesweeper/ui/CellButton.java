@@ -43,7 +43,7 @@ public class CellButton extends JButton {
                 }
             }
         });
-        	updateAppearance();
+        	updateCellState();
     }
 
     // 🔹 좌클릭: 셀 열기
@@ -52,13 +52,13 @@ public class CellButton extends JButton {
         try {
         	List<Point> opened = board.openCell(cell.getRow(), cell.getCol());
             moveCompleted = true;
-            window.refreshButtons(opened); // 연쇄 여부 무관 — 열린 칸만 부분 갱신
+            window.refreshCells(opened); // 연쇄 여부 무관 — 열린 칸만 부분 갱신
         } catch (GameExceptions.BoomException ex) {
             window.onGameOver(ex.getMessage()); // 지뢰 클릭시 게임오버(윈도우에서 실행)
         }
-        updateAppearance();
+        updateCellState();
         if (moveCompleted) {
-            window.checkForVictory();
+            window.checkForWin();
         }
     }
 
@@ -66,11 +66,11 @@ public class CellButton extends JButton {
     private void handleRightClick() {
         cell.onRightClick();
         refreshFromModel();
-        window.checkForVictory();
+        window.checkForWin();
     }
 
     // 🔹 셀 상태에 따라 버튼 외형 갱신
-    private void updateAppearance() {
+    private void updateCellState() {
     		// 열린 상태일 때
         if (cell.isOpened()) {
             setEnabled(false);
@@ -82,8 +82,8 @@ public class CellButton extends JButton {
             }
         } else {
             // 닫힌 상태일 때 깃발/물음표 표시
-            FlagState flagstate = cell.getFlagState();
-            switch (flagstate) {
+            FlagState flagState = cell.getFlagState();
+            switch (flagState) {
                 case FLAGGED -> setText("🚩");
                 case QUESTION -> setText("❓");
                 default -> setText(""); // 기본값(NONE 포함)
@@ -91,10 +91,6 @@ public class CellButton extends JButton {
         }
     }
     
-    void refreshFromModel() {
-        updateAppearance(); // 기존 1개 갱신 로직 재사용
-    }
-    public Cell getCell() {
-        return cell;
-    }
+    void refreshFromModel() {updateCellState();} // 기존 1개 갱신 로직 재사용
+    public Cell getCell() {return cell;}
 }

@@ -18,4 +18,13 @@ public enum Difficulty {
     public int getRows() { return rows; }
     public int getCols() { return cols; }
     public int getMines() { return mines; }
+    
+    // 옵션용 난이도 라벨
+    public String label() {
+        return switch (this) {
+            case EASY -> "초급 (9x9, 10)";
+            case NORMAL -> "중급 (16x16, 40)";
+            case HARD -> "고급 (16x30, 99)";
+        };
+    }
 }

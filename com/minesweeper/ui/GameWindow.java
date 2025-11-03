@@ -3,6 +3,7 @@ package com.minesweeper.ui;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.minesweeper.common.Difficulty;
@@ -23,6 +24,7 @@ public class GameWindow extends JFrame {
     private JRadioButtonMenuItem easyMenuItem;
     private JRadioButtonMenuItem normalMenuItem;
     private JRadioButtonMenuItem hardMenuItem;
+    private static final Object[] END_GAME_OPTIONS = {"새게임", "난이도 선택"}; // 게임 종료시 공통 선택지
     
     public GameWindow() {
         setTitle("Minesweeper");
@@ -75,14 +77,15 @@ public class GameWindow extends JFrame {
         menuBar.add(difficultyMenu);
         return menuBar;
     }
-
+    
+    // 현재 난이도로 게임 초기화
     private void initBoard() {
         board = new Board(currentDifficulty);
         board.initBoard();
         gameFinished = false;
     }
 
-    
+    // 배치 후 화면 갱신
     private void renderBoard() {    	
         if (boardPanel != null) remove(boardPanel);
 
@@ -104,16 +107,18 @@ public class GameWindow extends JFrame {
         repaint();
     }
 
- // 부분 갱신 전용
-    public void refreshButtons(java.util.List<Point> opened) {
+    // 부분 갱신 전용
+    public void refreshCells(List<Point> opened) {
         for (Point p : opened) {
             buttons[p.x][p.y].refreshFromModel();
         }
-    }	
+    }
+    // 현재 난이도로 재시작
     private void restartCurrentGame() {
         startGameWithDifficulty(currentDifficulty);
     }
 
+    // 변경된 난이도로 재시작
     private void startGameWithDifficulty(Difficulty difficulty) {
         currentDifficulty = difficulty;
         initBoard();
@@ -121,44 +126,35 @@ public class GameWindow extends JFrame {
         updateDifficultyMenuSelection();
     }
 
+    // 메뉴의 선택 상태를 현재 난이도와 맞춥니다
     private void updateDifficultyMenuSelection() {
-        if (easyMenuItem == null) {
-            return;
-        }
+        if (easyMenuItem == null) {return;}
         easyMenuItem.setSelected(currentDifficulty == Difficulty.EASY);
         normalMenuItem.setSelected(currentDifficulty == Difficulty.NORMAL);
         hardMenuItem.setSelected(currentDifficulty == Difficulty.HARD);
     }
 
     public void onGameOver(String message) {
-    	if (gameFinished) {
-            return;
-        }gameFinished = true;
+    	if (gameFinished) {return;}
+    	gameFinished = true;
     	openAllMines();
-        disableBoardInteraction();
-        Object[] options = {"새게임", "난이도 선택"};
+        disableAllBtn();
         String messageLine = (message == null || message.isBlank()) ? "지뢰를 클릭 했습니다!" : message;
         if ("지뢰를 클릭했습니다!".equals(messageLine)) {
             messageLine = "지뢰를 클릭 했습니다!";
         }
         String displayMessage = messageLine + "\n       Game Over";
-        int choice = showPostGameOptions(displayMessage, "Game Over");
-        handlePostGameChoice(choice);
+        handleEndChoice(displayMessage, "Game Over");
     }
     
-    public void checkForVictory() {
-        if (gameFinished || board == null) {
-            return;
-        }
-        if (board.hasPlayerWon()) {
-            onGameWin();
-        }
+    public void checkForWin() {
+        if (gameFinished || board == null) {return;}
+        if (board.playerWinCheck()) {onGameWin();}
     }
 
-    private void disableBoardInteraction() {
-        if (buttons == null) {
-            return;
-        }
+   // 게임 종료 시 모든 버튼 비활성화
+    private void disableAllBtn() {
+        if (buttons == null) {return;}
         for (CellButton[] row : buttons) {
             for (CellButton button : row) {
                 button.setEnabled(false);
@@ -167,18 +163,14 @@ public class GameWindow extends JFrame {
     }
     
     private void onGameWin() {
-        if (gameFinished) {
-            return;
-        }
+        if (gameFinished) {return;}
         gameFinished = true;
-        disableBoardInteraction();
+        disableAllBtn();
         String displayMessage = "축하합니다! 승리했습니다!\n       Victory";
-        int choice = showPostGameOptions(displayMessage, "Victory");
-        handlePostGameChoice(choice);
+        handleEndChoice(displayMessage, "Victory");
     }
 
-    private int showPostGameOptions(String displayMessage, String title) {
-        Object[] options = {"새게임", "난이도 선택"};
+    private int showEndOptions(String displayMessage, String title) {
         return JOptionPane.showOptionDialog(
                 this,
                 displayMessage,
@@ -186,23 +178,25 @@ public class GameWindow extends JFrame {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                options,
-                options[0]
+                END_GAME_OPTIONS,
+                END_GAME_OPTIONS[0]
         );
     }
     
-    private void handlePostGameChoice(int choice) {
-        if (choice == 0) {
-            restartCurrentGame();
+    private void handleEndChoice(String displayMessage, String title) {
+        int choice = showEndOptions(displayMessage, title);
+        applyEndChoice(choice);
+    }
+    
+    private void applyEndChoice(int choice) {
+        if (choice == 0) {restartCurrentGame();
         } else if (choice == 1) {
-            showDifficultySelectionDialog();
+            chooseDifficulty();
         }
     }
     
     private void openAllMines() {
-        if (board == null || buttons == null) {
-            return;
-        }
+        if (board == null || buttons == null) {return;}
 
         Cell[][] cells = board.getCells();
         List<Point> minesToOpen = new ArrayList<>();
@@ -216,17 +210,15 @@ public class GameWindow extends JFrame {
                 }
             }
         }
-
-        refreshButtons(minesToOpen);
+        refreshCells(minesToOpen);
     }
     
 
-    private void showDifficultySelectionDialog() {
-        Object[] options = {
-                difficultyLabel(Difficulty.EASY),
-                difficultyLabel(Difficulty.NORMAL),
-                difficultyLabel(Difficulty.HARD)
-        };
+    private void chooseDifficulty() {
+        Difficulty[] difficulties = Difficulty.values();
+        String[] labels = Arrays.stream(difficulties)
+                .map(Difficulty::label)
+                .toArray(String[]::new);
 
         int selection = JOptionPane.showOptionDialog(
                 this,
@@ -235,29 +227,15 @@ public class GameWindow extends JFrame {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
                 null,
-                options,
-                options[0]
+                labels,
+                labels[0]
         );
 
-        if (selection >= 0 && selection < options.length) {
-            Difficulty chosen = switch (selection) {
-                case 0 -> Difficulty.EASY;
-                case 1 -> Difficulty.NORMAL;
-                case 2 -> Difficulty.HARD;
-                default -> currentDifficulty;
-            };
-            startGameWithDifficulty(chosen);
+        if (selection >= 0 && selection < difficulties.length) {
+            startGameWithDifficulty(difficulties[selection]);
         } else {
             // 사용자가 다이얼로그를 닫은 경우 게임을 재시작하여 멈춘 상태를 방지
             restartCurrentGame();
         }
-    }
-
-    private String difficultyLabel(Difficulty difficulty) {
-        return switch (difficulty) {
-            case EASY -> "초급 (9x9, 10)";
-            case NORMAL -> "중급 (16x16, 40)";
-            case HARD -> "고급 (16x30, 99)";
-        };                
     }
 }
