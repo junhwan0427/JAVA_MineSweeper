@@ -17,13 +17,17 @@ public class GameWindow extends JFrame {
     private boolean gameFinished;
     
     private Board board;
-    private JPanel boardPanel;
-
+    private JPanel boardPanel, statusPanel;
     private CellButton[][] buttons; // 버튼 빠른 접근을 위해 2차원 배열 보관
     
-    private JRadioButtonMenuItem easyMenuItem;
-    private JRadioButtonMenuItem normalMenuItem;
-    private JRadioButtonMenuItem hardMenuItem;
+    private JRadioButtonMenuItem easyMenuItem, normalMenuItem, hardMenuItem;
+    private JLabel difficultyLabel, timerLabel; // 게임화면 상단 내용 추가 목적
+    private Timer gameTimer;
+    private long startTimeMillis, elapsedMillis;
+    private boolean timerStarted, timerRunning;
+    
+    
+    
     private static final Object[] END_GAME_OPTIONS = {"새게임", "난이도 선택"}; // 게임 종료시 공통 선택지
     
     public GameWindow() {
@@ -33,7 +37,8 @@ public class GameWindow extends JFrame {
         setSize(700, 800);
         setLocationRelativeTo(null);
         setJMenuBar(buildMenuBar()); // 상단 메뉴바
-        
+        setupStatusPanel();
+        setupTimer();        
         initBoard();
         renderBoard();
 
@@ -83,10 +88,12 @@ public class GameWindow extends JFrame {
         board = new Board(currentDifficulty);
         board.initBoard();
         gameFinished = false;
+        resetTimer();
+        updateDifficultyLabel();
     }
 
     // 배치 후 화면 갱신
-    private void renderBoard() {    	
+    private void renderBoard() {
         if (boardPanel != null) remove(boardPanel);
 
         int R = board.getRows(), C = board.getCols();
@@ -137,6 +144,7 @@ public class GameWindow extends JFrame {
     public void onGameOver(String message) {
     	if (gameFinished) {return;}
     	gameFinished = true;
+    	stopTimer();
     	openAllMines();
         disableAllBtn();
         String messageLine = (message == null || message.isBlank()) ? "지뢰를 클릭 했습니다!" : message;
@@ -166,8 +174,10 @@ public class GameWindow extends JFrame {
     private void onGameWin() {
         if (gameFinished) {return;}
         gameFinished = true;
+        stopTimer();
         disableAllBtn();
-        String displayMessage = "축하합니다! 승리했습니다!\n       Victory";
+        String timeLine = "경과 시간: " + formatElapsedTime(elapsedMillis);
+        String displayMessage = "축하합니다! 승리했습니다!\n" + timeLine + "\n       Victory";
         handleEndChoice(displayMessage, "Victory");
     }
 
@@ -239,4 +249,115 @@ public class GameWindow extends JFrame {
             restartCurrentGame();
         }
     }
+    
+    // 게임 상단 바
+    private void setupStatusPanel() {
+        if (statusPanel != null) {remove(statusPanel);}
+
+        statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+
+        difficultyLabel = new JLabel();
+        difficultyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        difficultyLabel.setFont(difficultyLabel.getFont().deriveFont(Font.BOLD, 16f));
+
+        timerLabel = new JLabel("00:00");
+        timerLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        timerLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
+
+        JLabel spacer = new JLabel(" ");
+        spacer.setPreferredSize(timerLabel.getPreferredSize());
+
+        statusPanel.add(spacer, BorderLayout.WEST);
+        statusPanel.add(difficultyLabel, BorderLayout.CENTER);
+        statusPanel.add(timerLabel, BorderLayout.EAST);
+
+        add(statusPanel, BorderLayout.NORTH);
+    }
+
+    private void setupTimer() {
+        gameTimer = new Timer(1000, e -> onTimerTick());
+        gameTimer.setRepeats(true);
+        resetTimer();
+    }
+
+    private void onTimerTick() {
+        if (!timerRunning) {return;}
+        updateElapsedMillis();
+        timerLabel.setText(formatElapsedTime(elapsedMillis));
+    }
+
+    private void startTimerIfNeeded() {
+        if (timerStarted || gameFinished) {return;}
+        timerStarted = true;
+        timerRunning = true;
+        startTimeMillis = System.currentTimeMillis();
+        elapsedMillis = 0L;
+        timerLabel.setText(formatElapsedTime(elapsedMillis));
+        if (gameTimer != null) {
+            if (gameTimer.isRunning()) {
+                gameTimer.restart();
+            } else {
+                gameTimer.start();
+            }
+        }
+    }
+
+    private void stopTimer() {
+        if (!timerStarted || !timerRunning) {return;}
+        updateElapsedMillis();
+        timerRunning = false;
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+        timerLabel.setText(formatElapsedTime(elapsedMillis));
+    }
+
+    private void resetTimer() {
+        timerStarted = false;
+        timerRunning = false;
+        elapsedMillis = 0L;
+        startTimeMillis = 0L;
+        if (gameTimer != null && gameTimer.isRunning()) {
+            gameTimer.stop();
+        }
+        if (timerLabel != null) {
+            timerLabel.setText("00:00");
+        }
+    }
+
+    private void updateElapsedMillis() {
+        if (!timerStarted) {
+            elapsedMillis = 0L;
+            return;
+        }
+        long now = System.currentTimeMillis();
+        elapsedMillis = Math.max(0L, now - startTimeMillis);
+    }
+
+    private String formatElapsedTime(long millis) {
+        long totalSeconds = millis / 1000;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        }
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    /**
+     * 셀이 실제로 열릴 준비가 된 순간(첫 좌클릭 등)에 타이머를 시작하기 위해
+     * {@link CellButton}에서 호출하는 훅입니다. 첫 클릭 이전에는 지뢰를 배치하지
+     * 않으므로 UI 쪽에서 이 신호를 받아 타이머를 안전하게 켜 줍니다.
+     */
+    void onCellOpenInitiated() {
+        startTimerIfNeeded();
+    }
+
+    private void updateDifficultyLabel() {
+        if (difficultyLabel == null) {return;}
+        difficultyLabel.setText(currentDifficulty.label());
+    }
+    
 }
