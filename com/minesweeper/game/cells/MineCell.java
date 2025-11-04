@@ -6,9 +6,7 @@ import com.minesweeper.common.FlagState;
 import com.minesweeper.common.GameExceptions;
 import com.minesweeper.game.Board;
 
-//기능: 지뢰 셀을 표현하며 좌클릭 시 폭발 예외를 발생시킨다.
-//구조: Cell을 상속하고 추가 상태 없이 동작만 재정의한다.
-//관계: Board 참조를 부모로부터 받아 GameExceptions.BoomException을 통해 상위(UI)에 이벤트를 전달한다.
+// 지뢰 셀을 표현하며 좌클릭 시 폭발 예외를 발생
 
 public class MineCell extends Cell {
 

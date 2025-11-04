@@ -1,8 +1,6 @@
 package com.minesweeper.common;
 
-//기능: 게임 도중 발생하는 특수 상황(폭발, 잘못된 조작)에 대한 런타임 예외 모음을 제공한다.
-//구조: 인스턴스화를 방지하는 유틸성 클래스와 두 개의 static inner RuntimeException 클래스로 구성된다.
-//관계: MineCell/CellButton/Board에서 예외를 발생시켜 GameWindow(UI)로 흐름을 전달한다 (의존/uses).
+// 게임 도중 발생하는 특수 상황(폭발, 잘못된 조작)에 대한 런타임 예외 모음을 제공
 
 public final class GameExceptions {
 
