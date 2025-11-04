@@ -63,8 +63,8 @@ UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각�
 JAVA_MineSweeper/
 ├── README.md
 └── com/
-    └── minesweeper/ -> 애플리케이션 진입점과 공용 패키지에 대한 루트를 제공합니다.
-        ├── MinesweeperMain.java
+    └── minesweeper/ 
+        ├── MinesweeperMain.java -> 애플리케이션 진입점과 공용 패키지에 대한 루트를 제공합니다.
         ├── common/ -> 전역적으로 공유되는 정의를 모아둔 패키지입니다.
         │   ├── Click.java
         │   ├── Difficulty.java
