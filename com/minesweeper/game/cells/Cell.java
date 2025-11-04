@@ -1,15 +1,20 @@
 package com.minesweeper.game.cells;
 
+import java.awt.Point;
+import java.util.List;
 import com.minesweeper.common.Click;
 import com.minesweeper.common.FlagState;
+import com.minesweeper.game.Board;
 
 public abstract class Cell implements Click {
+	protected final Board board; // [NEW] 클릭 시 보드 조작을 위함
     protected boolean cellOpened;     // 칸이 열렸는가
     protected int row, col;           // 좌표
     protected boolean isMine;         // 지뢰 여부
     protected FlagState flagState;    // 깃발 상태 (NONE, FLAGGED, QUESTION)
 
-    public Cell(int row, int col) {
+    protected Cell(Board board, int row, int col) { // [NEW] 보드 참조 주입
+        this.board = board;
         this.row = row;
         this.col = col;
         this.cellOpened = false;
@@ -29,6 +34,11 @@ public abstract class Cell implements Click {
         this.flagState = flagState;
     }
     
+    protected void markOpened(List<Point> opened) { // [NEW] 공통 오픈 처리
+        cellOpened = true;
+        opened.add(new Point(row, col));
+    }
+    
     // 우클릭 시 상태 순환: NONE → FLAGGED → QUESTION → NONE
     public void nextFlagState() {
         switch (flagState) {
@@ -40,7 +50,7 @@ public abstract class Cell implements Click {
     }
 
     @Override
-    public abstract void onLeftClick();
+    public abstract void onLeftClick(List<Point> openedCells);
 
     @Override
     public abstract void onRightClick();

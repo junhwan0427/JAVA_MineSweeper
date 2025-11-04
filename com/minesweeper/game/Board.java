@@ -9,10 +9,10 @@ import java.util.Random;
 
 import com.minesweeper.common.Difficulty;
 import com.minesweeper.common.FlagState;
-import com.minesweeper.common.GameExceptions;
 import com.minesweeper.game.cells.Cell;
 import com.minesweeper.game.cells.EmptyCell;
 import com.minesweeper.game.cells.MineCell;
+import com.minesweeper.common.GameExceptions;
 
 
 public class Board {
@@ -47,7 +47,7 @@ public class Board {
         int placed = 0;
         int safeZoneSize = countSafeZoneCells(firstRow, firstCol); // safeZone보다 지뢰가 많을 경우 (사용자설정 난이도 추가 대비)
         if (rows * cols - safeZoneSize < mineCount) {
-            throw new IllegalStateException("지뢰 개수가 보드 크기 대비 너무 많습니다.");
+        	throw new IllegalStateException("지뢰 개수가 보드 크기 대비 너무 많습니다.");
         }
         
         while (placed < mineCount) {
@@ -58,7 +58,7 @@ public class Board {
             Cell current = cells[r][c];
             
             if (current.isMine()) {continue;}
-            MineCell mine = new MineCell(r, c);
+            MineCell mine = new MineCell(this, r, c); // [NEW] 보드 전달
             
             mine.setFlagState(current.getFlagState());
             mine.setOpened(current.isOpened());
@@ -72,7 +72,7 @@ public class Board {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (cells[r][c] == null) {
-                    cells[r][c] = new EmptyCell(r, c);
+                	cells[r][c] = new EmptyCell(this, r, c); // [NEW] 보드 전달
                 }
             }
         }
@@ -100,8 +100,7 @@ public class Board {
 
     
  // ✅ 셀 열기 (좌클릭 처리)
-    public List<Point> openCell(int r, int c) {
-    	    	
+    public List<Point> openCell(int r, int c) {    	    	
     	List<Point> opened = new ArrayList<>();
 
         if (!isInBoard(r, c)) return opened; // // 보드 밖 좌표
@@ -112,30 +111,17 @@ public class Board {
         safeMinesPlaced(r, c);
         cell = cells[r][c];
         
-        // 지뢰 클릭 시
-        if (cell.isMine()) {
-            cell.setOpened(true);
-            throw new GameExceptions.BoomException("지뢰를 클릭했습니다!");
-        }
-        
-        // 정상 오픈 시
-        cell.setOpened(true);
-        opened.add(new Point(r, c)); // am11 추가
-        
-        // 주변 지뢰가 0이면 연쇄 오픈 시작
-        if (cell instanceof EmptyCell empty && empty.getNearMineCount() == 0) {
-        	neighborCellOpen(r, c,opened);
-        }
+        cell.onLeftClick(opened); // [NEW] 셀 다형성 활용
         return opened;
     }
 
     // ✅ 연쇄 오픈 (BFS_너비우선탐색 방식)
-    private void neighborCellOpen(int r, int c, List<Point> opened) {
+    public void cascadeOpen(int r, int c, List<Point> opened) { // [NEW] 셀에서 직접 호출
         Queue<Point> queue = new LinkedList<>();
         queue.add(new Point(r, c));
 
         while (!queue.isEmpty()) {
-        	Point cur = queue.poll();        	            
+        		Point cur = queue.poll();        	            
         	for (int i = 0; i < NEAR_ROW.length; i++) {
                 int nr = cur.x + NEAR_ROW[i], nc = cur.y + NEAR_COL[i];
                 if (!isInBoard(nr, nc)) continue;

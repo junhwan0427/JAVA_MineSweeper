@@ -1,12 +1,15 @@
 package com.minesweeper.game.cells;
 
+import java.awt.Point;
+import java.util.List;
 import com.minesweeper.common.FlagState;
+import com.minesweeper.game.Board;
 
 public class EmptyCell extends Cell {
     private int nearMineCount; // 주변 지뢰 개수
 
-    public EmptyCell(int row, int col) {
-        super(row, col);
+    public EmptyCell(Board board, int row, int col) { // [NEW] 보드 전달
+        super(board, row, col);
         this.isMine = false;
         this.nearMineCount = 0;
     }
@@ -20,10 +23,14 @@ public class EmptyCell extends Cell {
     }
 
     @Override
-    public void onLeftClick() {
-        if (!cellOpened && flagState == FlagState.NONE) {
-            cellOpened = true;
-            // TODO: 빈칸일 경우 인접 칸 자동 열기 (Board에서 처리)
+    public void onLeftClick(List<Point> openedCells) {
+        if (cellOpened || flagState != FlagState.NONE) {
+            return;
+        }
+
+        markOpened(openedCells);
+        if (nearMineCount == 0) {
+            board.cascadeOpen(row, col, openedCells); // [NEW] 빈 칸 연쇄 오픈
         }
     }
 
