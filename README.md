@@ -26,10 +26,10 @@ Java 기반으로 구현한 지뢰찾기 게임 프로젝트입니다.
 
 ### 3-1. try-catch 예외 처리문
 
-- **폭발 처리**
+- 폭발 처리
   - 발생: MineCell.onLeftClick() → throw new GameExceptions.BoomException("지뢰를 클릭했습니다!")
   - 처리: CellButton.handleLeftClick() catch(BoomException) → GameWindow.onGameOver(message) 
-- **잘못된 조작(규칙 위반)**
+- 잘못된 조작(규칙 위반)
   - 발생: Board.checkFlagLimit()(깃발 과다), 경계 체크 등 → InvalidActionException
   - 처리:
     - 우클릭 시 CellButton.handleRightClick() catch(InvalidActionException) → JOptionPane 경고
@@ -37,8 +37,8 @@ Java 기반으로 구현한 지뢰찾기 게임 프로젝트입니다.
 
 ### 3-2. 상속과 인터페이스 설계
 - Click 인터페이스를 정의해 모든 셀이 공통적으로 좌클릭/우클릭 동작 규약을 정의
-- Cell은 지뢰(MineCell)와 빈 칸(EmptyCell)이 **공통으로 수행해야 하는 클릭 동작과 상태 관리(열림, 좌표, 깃발 상태 등)**를 정의한 추상 부모 클래스
-- 두 하위 클래스는 이를 상속받아 좌클릭 시 동작을 다형적으로 구현하며, MineCell은 폭발 예외를 발생시키고 EmptyCell은 인접 칸을 BFS로 연쇄 오픈하도록 동작을 구체화함.
+- Cell은 지뢰(MineCell)와 빈 칸(EmptyCell)이 공통으로 수행해야 하는 클릭 동작과 상태 관리(열림, 좌표, 깃발 상태 등)를 정의한 추상 부모 클래스
+- 두 하위 클래스는 이를 상속받아 좌클릭 시 동작을 다형적으로 구현하며, MineCell은 폭발 예외를 발생시키고 EmptyCell은 인접 칸을 BFS로 연쇄 오픈하도록 동작을 구체화함
 
 ### 3-3. 사용 프레임워크 및 선택 이유
 - ArrayList는 셀 오픈 시 열린 칸을 순차적으로 저장하고 한 번에 UI로 전달하기 위해 사용
