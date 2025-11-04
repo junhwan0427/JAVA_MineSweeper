@@ -23,28 +23,42 @@ UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각�
 - `Difficulty`, `FlagState`, `GameState`는 게임 전반에 사용되는 열거형으로, UI 텍스트와 상태 판별에 활용됩니다.
 - `GameManager`는 보드와 게임 상태를 묶어 추후 컨트롤러/서비스 레이어에서 재사용할 수 있도록 캡슐화했습니다.
 
-## 3. try-catch 예외처리 정리
+## 3. 상세 구현 내용
+
+### 3-1. try-catch 예외처리 정리
 - `CellButton.handleLeftClick()`에서 `Board.openCell()` 호출을 `try-catch`로 감싸 `GameExceptions.BoomException`을 처리합니다.
   - 지뢰를 클릭해 예외가 발생하면 `GameWindow.onGameOver()`로 위임해 게임 종료 다이얼로그를 표시합니다.
 - 지뢰 배치 시 보드 크기 대비 지뢰가 너무 많을 경우 `Board.placeMines()`에서 `IllegalStateException`을 던져 잘못된 난이도 구성을 방지합니다.
+
+### 3-2. 상속과 인터페이스 설계
+- `Click` 인터페이스는 셀이 좌클릭/우클릭 동작을 구현하도록 강제합니다.
+- `Cell` 추상 클래스는 좌표, 깃발 상태, 열림 여부와 같은 공통 상태와 `nextFlagState()` 로직을 제공합니다.
+  - `EmptyCell`과 `MineCell`이 이를 상속해 각 타입별 상태 값을 설정하고, 클릭 동작을 구체화합니다.
+- `GameExceptions` 유틸리티 클래스는 커스텀 런타임 예외를 중첩 클래스로 묶어 UI와 로직 사이의 계약을 명확하게 했습니다.
+
+### 3-3. 사용 프레임워크 및 선택 이유
+- `ArrayList<Point>` 기반의 `List`로 클릭 결과나 갱신 대상 셀 목록을 가변 길이로 관리해 UI와 로직 간 데이터 전달을 단순화했습니다.
+- 연쇄 오픈 로직은 `Queue<Point>`(구현체: `LinkedList`)를 사용해 BFS를 안정적으로 처리하고, 재귀 호출 없이도 대규모 탐색을 수행할 수 있도록 했습니다.
+- `List`와 `Queue`의 표준 인터페이스를 사용해 이후 다른 컬렉션 구현체로 교체해야 할 때도 최소 변경으로 대응할 수 있는 유연성을 확보했습니다.
 
 ## 4. 문제 해결
 - **첫 클릭에서 지뢰가 나타나는 문제**: 지뢰를 초기화 시점에 배치하지 않고, 첫 클릭 좌표를 입력받은 뒤 안전 구역을 피해서 배치하도록 로직을 수정했습니다.
 - **창 크기 변경 시 칸이 일그러지는 문제**: 보드 패널을 중앙 배치 컨테이너로 감싸고, 리사이즈 이벤트마다 셀 크기를 계산해 정사각형을 유지하도록 고정 범위(최소 32px, 최대 80px)를 적용했습니다.
 - **연쇄 오픈 성능 문제**: 재귀 대신 큐 기반 BFS로 변경해 스택 오버플로우 위험을 줄이고 대량 연쇄 오픈을 안정적으로 처리합니다.
 
-## 5. 상속과 인터페이스 설계
-- `Click` 인터페이스는 셀이 좌클릭/우클릭 동작을 구현하도록 강제합니다.
-- `Cell` 추상 클래스는 좌표, 깃발 상태, 열림 여부와 같은 공통 상태와 `nextFlagState()` 로직을 제공합니다.
-  - `EmptyCell`과 `MineCell`이 이를 상속해 각 타입별 상태 값을 설정하고, 클릭 동작을 구체화합니다.
-- `GameExceptions` 유틸리티 클래스는 커스텀 런타임 예외를 중첩 클래스로 묶어 UI와 로직 사이의 계약을 명확하게 했습니다.
+## 5. 클래스 다이어그램
 
-## 6. 사용 프레임워크 및 선택 이유
-- `ArrayList<Point>` 기반의 `List`로 클릭 결과나 갱신 대상 셀 목록을 가변 길이로 관리해 UI와 로직 간 데이터 전달을 단순화했습니다.
-- 연쇄 오픈 로직은 `Queue<Point>`(구현체: `LinkedList`)를 사용해 BFS를 안정적으로 처리하고, 재귀 호출 없이도 대규모 탐색을 수행할 수 있도록 했습니다.
-- `List`와 `Queue`의 표준 인터페이스를 사용해 이후 다른 컬렉션 구현체로 교체해야 할 때도 최소 변경으로 대응할 수 있는 유연성을 확보했습니다.
+## 6. 작동 화면
+### 6-1. 메뉴 조작 화면
+![menu_gif](https://github.com/user-attachments/assets/112067f2-c815-43b6-9aef-6491aaeb5df8)
 
-## 스켈레톤 구조 및 기능 요약
+### 6-2. 플레이 화면(게임 오버 포함)
+![play_gif](https://github.com/user-attachments/assets/541c7fe0-d174-4919-bcfd-1f6fc71ad2d6)
+
+### 6-3. 클리어 화면
+![clear_gif](https://github.com/user-attachments/assets/cadf3efd-1bb8-44b6-8fef-622f06da9439)
+
+## 7. 스켈레톤 구조 및 기능 요약
 ```text
 JAVA_MineSweeper/
 ├── README.md
@@ -55,11 +69,9 @@ JAVA_MineSweeper/
         │   ├── Click.java
         │   ├── Difficulty.java
         │   ├── FlagState.java
-        │   ├── GameExceptions.java 
-        │   └── GameState.java 
+        │   └── GameExceptions.java 
         ├── game/ -> 보드 생성·지뢰 배치·승리 판정과 같은 핵심 게임 로직을 담당합니다.
         │   ├── Board.java
-        │   ├── GameManager.java
         │   └── cells/ -> 셀 모델을 세분화해 타입별 상태와 동작을 제공합니다.
         │       ├── Cell.java
         │       ├── EmptyCell.java
