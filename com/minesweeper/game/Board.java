@@ -111,12 +111,12 @@ public class Board {
         safeMinesPlaced(r, c);
         cell = cells[r][c];
         
-        cell.onLeftClick(opened); // [NEW] 셀 다형성 활용
+        cell.onLeftClick(opened); // 셀 다형성 활용
         return opened;
     }
 
     // ✅ 연쇄 오픈 (BFS_너비우선탐색 방식)
-    public void cascadeOpen(int r, int c, List<Point> opened) { // [NEW] 셀에서 직접 호출
+    public void cascadeOpen(int r, int c, List<Point> opened) { // 셀에서 직접 호출
         Queue<Point> queue = new LinkedList<>();
         queue.add(new Point(r, c));
 
@@ -182,6 +182,28 @@ public class Board {
     public int getRows() { return rows; }
     public int getCols() { return cols; }
     
+ // 깃발 표시 가능 여부 검사
+    public void checkFlagLimit() {
+        int flagged = countFlaggedCells();
+        if (flagged >= mineCount) {
+            throw new GameExceptions.InvalidActionException(
+                    String.format("지뢰 개수가 너무 많습니다 (현재 깃발 수: %d / 최대: %d)", flagged, mineCount));
+        }
+    }
+
+    // 현재 깃발 수 계산
+    private int countFlaggedCells() {
+        int flagged = 0;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (cells[r][c].getFlagState() == FlagState.FLAGGED) {
+                    flagged++;
+                }
+            }
+        }
+        return flagged;
+    }
+    
     public boolean playerWinCheck() {
     	if (!isMinePlaced) {return false;}
     	
@@ -212,8 +234,5 @@ public class Board {
     
     public boolean getIsMinePlaced() {
         return isMinePlaced;
-    }
-    
-    
-    
+    }  
 }

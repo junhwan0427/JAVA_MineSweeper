@@ -14,7 +14,7 @@ import com.minesweeper.game.cells.Cell;
 
 public class GameWindow extends JFrame {
 	
-    private Difficulty currentDifficulty = Difficulty.EASY; // 초기화면 수정해야 함
+    private Difficulty currentDifficulty = Difficulty.EASY; // 초기화면
     
     private boolean gameFinished;
     

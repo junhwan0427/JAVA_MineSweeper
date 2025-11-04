@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.minesweeper.common.FlagState;
@@ -16,15 +17,12 @@ import com.minesweeper.game.cells.EmptyCell;
 
 
 public class CellButton extends JButton {
-    
-    // 첫 클릭 이후 지뢰를 배치하면 일부 칸의 Cell 인스턴스가 MineCell 등으로 교체된다.
-    // 초기 Cell 참조를 계속 들고 있으면 최신 상태를 반영하지 못하므로 좌표만 저장해
-    // 매번 보드에서 현재 셀을 조회한다.
+ 
     private final int row,col; // final은 재할당 방지    
-    private final Board board; // [1103_am11 추가 연쇄오픈용 보드 선언]
-    private final GameWindow window; // ← 추가: 뷰 갱신을 창에 위임
+    private final Board board;
+    private final GameWindow window;
     
-    public CellButton(Cell cell, Board board, GameWindow window) { // [1103_am11 추가 연쇄오픈용 보드 선언]
+    public CellButton(Cell cell, Board board, GameWindow window) {
     	this.row = cell.getRow();
         this.col = cell.getCol();
         this.board = board;
@@ -34,7 +32,7 @@ public class CellButton extends JButton {
         setFont(getFont().deriveFont(14f));
         setMargin(new java.awt.Insets(0,0,0,0));
 
-        // 좌클릭 / 우클릭 이벤트 처리
+        // 좌클릭 우클릭 이벤트 처리
         addMouseListener(new MouseAdapter() {
         	@Override
             public void mousePressed(MouseEvent e) {
@@ -70,9 +68,18 @@ public class CellButton extends JButton {
 
     // 🔹 우클릭: 깃발/물음표 상태 변경
     private void handleRightClick() {
-    	getCell().onRightClick();
-        refreshFromModel();
-        window.checkForWin();
+    	boolean rightClickAccepted = false;
+        try { // 깃발 제한 위반 시 예외를 받아 사용자에게 안내하기 위함
+            getCell().onRightClick();
+            rightClickAccepted = true;
+        } catch (GameExceptions.InvalidActionException ex) {
+            JOptionPane.showMessageDialog(window, ex.getMessage(), "잘못된 조작", JOptionPane.WARNING_MESSAGE); // [NEW]
+        } finally {
+            refreshFromModel();
+        }
+        if (rightClickAccepted) {
+            window.checkForWin();
+        }
     }
 
     // 🔹 셀 상태에 따라 버튼 외형 갱신

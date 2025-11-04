@@ -1,4 +1,4 @@
-package com.minesweeper.game.cells;
+ package com.minesweeper.game.cells;
 
 import java.awt.Point;
 import java.util.List;

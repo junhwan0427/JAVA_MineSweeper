@@ -7,7 +7,7 @@ import com.minesweeper.common.FlagState;
 import com.minesweeper.game.Board;
 
 public abstract class Cell implements Click {
-	protected final Board board; // [NEW] 클릭 시 보드 조작을 위함
+	protected final Board board; 	  // 클릭 시 보드 조작을 위함
     protected boolean cellOpened;     // 칸이 열렸는가
     protected int row, col;           // 좌표
     protected boolean isMine;         // 지뢰 여부
@@ -43,7 +43,10 @@ public abstract class Cell implements Click {
     public void nextFlagState() {
         switch (flagState) {
         // 람다식 스위치문은 break 생략 가능
-            case NONE -> flagState = FlagState.FLAGGED;
+        	case NONE -> {
+            board.checkFlagLimit(); // [NEW]
+            flagState = FlagState.FLAGGED;
+        }
             case FLAGGED -> flagState = FlagState.QUESTION;
             case QUESTION -> flagState = FlagState.NONE;
         }
