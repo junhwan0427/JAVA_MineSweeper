@@ -20,8 +20,7 @@ public class CellButton extends JButton {
     // 첫 클릭 이후 지뢰를 배치하면 일부 칸의 Cell 인스턴스가 MineCell 등으로 교체된다.
     // 초기 Cell 참조를 계속 들고 있으면 최신 상태를 반영하지 못하므로 좌표만 저장해
     // 매번 보드에서 현재 셀을 조회한다.
-    private final int row,col; // final은 재할당 방지
-    
+    private final int row,col; // final은 재할당 방지    
     private final Board board; // [1103_am11 추가 연쇄오픈용 보드 선언]
     private final GameWindow window; // ← 추가: 뷰 갱신을 창에 위임
     

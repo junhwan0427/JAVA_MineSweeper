@@ -23,10 +23,8 @@ public class GameWindow extends JFrame {
     private CellButton[][] buttons; // 버튼 빠른 접근을 위해 2차원 배열 보관
     
     private JRadioButtonMenuItem easyMenuItem, normalMenuItem, hardMenuItem;
-    private JLabel difficultyLabel, timerLabel; // 게임화면 상단 내용 추가 목적
-    private Timer gameTimer;
-    private long startTimeMillis, elapsedMillis;
-    private boolean timerStarted, timerRunning;
+    private JLabel difficultyLabel; // 게임화면 상단 내용 추가 목적
+    private TimerPanel timerPanel; // 타이머 추가
     
     
     
@@ -41,8 +39,7 @@ public class GameWindow extends JFrame {
         setSize(700, 800);
         setLocationRelativeTo(null);
         setJMenuBar(buildMenuBar()); // 상단 메뉴바
-        setupStatusPanel();
-        setupTimer();        
+        setupStatusPanel();      
         initBoard();
         renderBoard();
         
@@ -104,7 +101,7 @@ public class GameWindow extends JFrame {
         board = new Board(currentDifficulty);
         board.initBoard();
         gameFinished = false;
-        resetTimer();
+        if (timerPanel != null) {timerPanel.resetTimer();}
         updateDifficultyLabel();
     }
 
@@ -173,7 +170,7 @@ public class GameWindow extends JFrame {
     public void onGameOver(String message) {
     	if (gameFinished) {return;}
     	gameFinished = true;
-    	stopTimer();
+    	if (timerPanel != null) {timerPanel.stopTimer();}
     	openAllMines();
         disableAllBtn();
         String messageLine = (message == null || message.isBlank()) ? "지뢰를 클릭 했습니다!" : message;
@@ -203,9 +200,9 @@ public class GameWindow extends JFrame {
     private void onGameWin() {
         if (gameFinished) {return;}
         gameFinished = true;
-        stopTimer();
+        if (timerPanel != null) {timerPanel.stopTimer();}
         disableAllBtn();
-        String timeLine = "경과 시간: " + formatElapsedTime(elapsedMillis);
+        String timeLine = "경과 시간: " + (timerPanel != null ? timerPanel.getFormattedElapsedTime() : "00:00");
         String displayMessage = "축하합니다! 승리했습니다!\n" + timeLine + "\n       Victory";
         handleEndChoice(displayMessage, "Victory");
     }
@@ -356,96 +353,24 @@ public class GameWindow extends JFrame {
         difficultyLabel.setHorizontalAlignment(SwingConstants.CENTER);
         difficultyLabel.setFont(difficultyLabel.getFont().deriveFont(Font.BOLD, 16f));
 
-        timerLabel = new JLabel("00:00");
-        timerLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        timerLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
+        timerPanel = new TimerPanel();
 
-        JLabel spacer = new JLabel(" ");
-        spacer.setPreferredSize(timerLabel.getPreferredSize());
+        JPanel spacer = new JPanel();
+        spacer.setOpaque(false);
+        spacer.setPreferredSize(timerPanel.getPreferredSize());
 
         statusPanel.add(spacer, BorderLayout.WEST);
         statusPanel.add(difficultyLabel, BorderLayout.CENTER);
-        statusPanel.add(timerLabel, BorderLayout.EAST);
+        statusPanel.add(timerPanel, BorderLayout.EAST);
 
         add(statusPanel, BorderLayout.NORTH);
         updateFrameMinimumSize();
     }
 
-    private void setupTimer() {
-        gameTimer = new Timer(1000, e -> onTimerTick());
-        gameTimer.setRepeats(true);
-        resetTimer();
-    }
-
-    private void onTimerTick() {
-        if (!timerRunning) {return;}
-        updateElapsedMillis();
-        timerLabel.setText(formatElapsedTime(elapsedMillis));
-    }
-
-    private void startTimerIfNeeded() {
-        if (timerStarted || gameFinished) {return;}
-        timerStarted = true;
-        timerRunning = true;
-        startTimeMillis = System.currentTimeMillis();
-        elapsedMillis = 0L;
-        timerLabel.setText(formatElapsedTime(elapsedMillis));
-        if (gameTimer != null) {
-            if (gameTimer.isRunning()) {
-                gameTimer.restart();
-            } else {
-                gameTimer.start();
-            }
-        }
-    }
-
-    private void stopTimer() {
-        if (!timerStarted || !timerRunning) {return;}
-        updateElapsedMillis();
-        timerRunning = false;
-        if (gameTimer != null) {
-            gameTimer.stop();
-        }
-        timerLabel.setText(formatElapsedTime(elapsedMillis));
-    }
-
-    private void resetTimer() {
-        timerStarted = false;
-        timerRunning = false;
-        elapsedMillis = 0L;
-        startTimeMillis = 0L;
-        if (gameTimer != null && gameTimer.isRunning()) {
-            gameTimer.stop();
-        }
-        if (timerLabel != null) {
-            timerLabel.setText("00:00");
-        }
-    }
-
-    private void updateElapsedMillis() {
-        if (!timerStarted) {
-            elapsedMillis = 0L;
-            return;
-        }
-        long now = System.currentTimeMillis();
-        elapsedMillis = Math.max(0L, now - startTimeMillis);
-    }
-
-    private String formatElapsedTime(long millis) {
-        long totalSeconds = millis / 1000;
-        long hours = totalSeconds / 3600;
-        long minutes = (totalSeconds % 3600) / 60;
-        long seconds = totalSeconds % 60;
-        if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        }
-        return String.format("%02d:%02d", minutes, seconds);
-    }
-
-
-    // CellButton에서 첫 좌클릭 감지로 타이버 시작
+    // CellButton에서 첫 좌클릭 감지로 타이머 시작
     void onCellOpenInitiated() {
-        startTimerIfNeeded();
+    	if (gameFinished || timerPanel == null) {return;}
+        timerPanel.startTimerIfNeeded();
     }
 
     private void updateDifficultyLabel() {
