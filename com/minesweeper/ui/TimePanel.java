@@ -11,11 +11,11 @@ import java.awt.Font;
 class TimerPanel extends JPanel {
 
     private final JLabel timerLabel;
-    private final Timer swingTimer;
+    private final Timer gameTimer;
     private long startTimeMillis,elapsedMillis;
     private boolean timerStarted,timerRunning;
 
-    TimerPanel() {
+    public TimerPanel() {
         setLayout(new BorderLayout());
 
         timerLabel = new JLabel("00:00");
@@ -24,13 +24,13 @@ class TimerPanel extends JPanel {
 
         add(timerLabel, BorderLayout.CENTER);
 
-        swingTimer = new Timer(1000, e -> onTimerTick());
-        swingTimer.setRepeats(true);
+        gameTimer = new Timer(1000, e -> onTimerTick());
+        gameTimer.setRepeats(true);
 
         resetTimer();
     }
 
-    void startTimerIfNeeded() {
+   public void startTimerIfNeeded() {
         if (timerStarted) {return;}
 
         timerStarted = true;
@@ -39,35 +39,35 @@ class TimerPanel extends JPanel {
         elapsedMillis = 0L;
         timerLabel.setText(formatElapsedTime(elapsedMillis));
 
-        if (swingTimer.isRunning()) {
-            swingTimer.restart();
+        if (gameTimer.isRunning()) {
+            gameTimer.restart();
         } else {
-            swingTimer.start();
+            gameTimer.start();
         }
     }
 
-    void stopTimer() {
+   public void stopTimer() {
         if (!timerStarted || !timerRunning) {return;}
 
         updateElapsedMillis();
         timerRunning = false;
-        swingTimer.stop();
+        gameTimer.stop();
         timerLabel.setText(formatElapsedTime(elapsedMillis));
     }
 
-    void resetTimer() {
+   public void resetTimer() {
         timerStarted = false;
         timerRunning = false;
         elapsedMillis = 0L;
         startTimeMillis = 0L;
 
-        if (swingTimer.isRunning()) {
-            swingTimer.stop();
+        if (gameTimer.isRunning()) {
+            gameTimer.stop();
         }
         timerLabel.setText("00:00");
     }
 
-    long getElapsedMillis() {
+   public long getElapsedMillis() {
         if (timerStarted && timerRunning) {
             updateElapsedMillis();
         }
