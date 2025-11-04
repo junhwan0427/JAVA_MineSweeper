@@ -12,6 +12,10 @@ import com.minesweeper.common.Difficulty;
 import com.minesweeper.game.Board;
 import com.minesweeper.game.cells.Cell;
 
+// 전체 게임 창을 구성하고 보드 렌더링, 메뉴, 상태 표시, 종료 처리 등 UI 흐름을 제어
+// JFrame을 상속받아 메뉴바/상태패널/보드패널을 포함하며, 난이도 변경과 보드 갱신 로직을 메서드로 분리함
+// Board를 합성하여 게임 데이터를 관리하고 CellButton/TimerPanel과 has-a 연관을 맺으며, Difficulty와 Swing 컴포넌트에 의존한다.
+
 public class GameWindow extends JFrame {
 	
     private Difficulty currentDifficulty = Difficulty.EASY; // 초기화면

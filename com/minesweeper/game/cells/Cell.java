@@ -6,6 +6,10 @@ import com.minesweeper.common.Click;
 import com.minesweeper.common.FlagState;
 import com.minesweeper.game.Board;
 
+//기능: 지뢰/빈 칸이 공통으로 따르는 셀 동작과 상태(좌표, 열림, 깃발)를 정의한다.
+//구조: 추상 클래스이며 Board 참조와 공통 필드를 보유하고 Click 인터페이스를 구현한다.
+//관계: Board와 연관(has-a)되어 보드 연산을 호출하고, EmptyCell/MineCell이 상속(is-a)하며 Click 인터페이스를 실체화(implements)한다.
+
 public abstract class Cell implements Click {
 	protected final Board board; 	  // 클릭 시 보드 조작을 위함
     protected boolean cellOpened;     // 칸이 열렸는가

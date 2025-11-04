@@ -1,5 +1,9 @@
 package com.minesweeper.common;
 
+//기능: 미리 정의된 난이도별 보드 크기와 지뢰 수를 제공한다.
+//구조: EASY/NORMAL/HARD 열거형 상수와 파생 메서드(label 등)를 포함한다.
+//관계: GameWindow와 Board에서 설정 정보를 읽어 보드 구성에 사용한다 (의존/uses).
+
 public enum Difficulty {
     EASY(9, 9, 10),
     NORMAL(16, 16, 40),

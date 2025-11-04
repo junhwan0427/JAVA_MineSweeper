@@ -8,6 +8,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 
+// 게임 경과 시간을 표시 기능 담당한다.
+//구조: JPanel을 상속하여 JLabel과 Swing Timer를 멤버로 보유하며 시간 계산 헬퍼 메서드를 제공한다.
+//관계: GameWindow에 의해 합성(has-a)되어 사용되며 Swing Timer 및 UI 컴포넌트에 의존한다.
+
 class TimerPanel extends JPanel {
 
     private final JLabel timerLabel;

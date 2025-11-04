@@ -15,6 +15,9 @@ import com.minesweeper.game.Board;
 import com.minesweeper.game.cells.Cell;
 import com.minesweeper.game.cells.EmptyCell;
 
+//기능: 보드 셀을 나타내는 버튼으로 좌우 클릭 입력을 처리하고 모델 상태에 맞춰 UI를 갱신한다.
+//구조: JButton을 상속하고 좌표/Board/GameWindow 참조를 필드로 보관하며 이벤트 처리 메서드를 제공한다.
+//관계: Board 및 GameWindow와 연관(has-a)되어 상호작용하고, Cell/EmptyCell/FlagState/GameExceptions에 의존한다.
 
 public class CellButton extends JButton {
  

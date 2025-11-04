@@ -14,6 +14,10 @@ import com.minesweeper.game.cells.EmptyCell;
 import com.minesweeper.game.cells.MineCell;
 import com.minesweeper.common.GameExceptions;
 
+//	지뢰게임 보드의 상태를 관리하며 지뢰 배치, 셀 열기, 연쇄 오픈, 승리 판정을 담당
+//	난이도 기반 크기/지뢰 수와 Cell[][]를 보유하며 내부 헬퍼 메서드로 지뢰 배치와 BFS 연산을 구현한다.
+//관계: Difficulty로부터 초기 설정을 받고 MineCell/EmptyCell을 합성하여 보드를 구성하며 FlagState와 GameWindow 측 로직
+//	   (CellButton 등)에서 호출된다.
 
 public class Board {
 	private static final int[] NEAR_ROW = {-1, -1, -1, 0, 0, 1, 1, 1};// 주변 8칸 조회 용도
