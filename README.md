@@ -47,6 +47,7 @@ UI는 창 크기에 맞춰 자동으로 리사이징되며 각 칸은 정사각�
 - **연쇄 오픈 성능 문제**: 재귀 대신 큐 기반 BFS로 변경해 스택 오버플로우 위험을 줄이고 대량 연쇄 오픈을 안정적으로 처리합니다.
 
 ## 5. 클래스 다이어그램
+<img width="1332" height="1768" alt="ClassDiagram" src="https://github.com/user-attachments/assets/731f202d-a67a-49ec-bc01-06955906e668" />
 
 ## 6. 작동 화면
 ### 6-1. 메뉴 조작 화면
