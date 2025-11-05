@@ -71,6 +71,10 @@ Java 기반으로 구현한 지뢰찾기 게임 프로젝트입니다.
 - 게임 클리어 시 경과시간 표기
 ![clear_gif](https://github.com/user-attachments/assets/cadf3efd-1bb8-44b6-8fef-622f06da9439)
 
+### 6-3. 예외처리 화면
+- 현재 지뢰보다 많은 깃발을 넣을 시 예외 화면 팝업
+![Exception](https://github.com/user-attachments/assets/8f555ece-33b3-426d-a8f2-7e6239d6c020)
+
 ## 7. 스켈레톤 구조 및 기능 요약
 ```text
 JAVA_MineSweeper/
